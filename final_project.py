@@ -4,7 +4,7 @@ from pandas_datareader import data as pdr
 import plotly.express as px
 import numpy as np
 from PIL import Image
-import fix_yahoo_finance as yf
+import yfinance as yf
 
 def parameter(df_sp,sector_default_val,cap_default_val):
     

@@ -1,8 +1,7 @@
 pandas
 numpy
 scikit-learn
-yfinance
-fix_yahoo_finance 
+yfinance 
 streamlit
 plotly
 altair

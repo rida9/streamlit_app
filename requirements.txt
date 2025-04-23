@@ -6,3 +6,4 @@ streamlit
 plotly
 altair
 pandas_datareader
+setuptools

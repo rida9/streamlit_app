@@ -31,7 +31,7 @@ def parameter(df_sp,sector_default_val,cap_default_val):
 
     return option_sector, dividend_value, profit_value, cap_value
 
-@st.cache
+@st.cache_data
 def read_data():
     path_data = 's&p500.csv' 
     df_sp = pd.read_csv(path_data)

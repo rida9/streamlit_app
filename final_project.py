@@ -40,11 +40,16 @@ def read_data():
 
 def company_price(df_sp,option_company):
     if option_company != None:
-        ticker_company = df_sp.loc[df_sp['name'] == option_company,'ticker'].values[0]
-        data_price = pdr.get_data_yahoo(ticker_company, start="2011-12-31", end="2021-12-31")['Adj Close']
-        data_price = data_price.reset_index(drop = False)
-        data_price.columns = ['ds','y']
-        return data_price
+        try:
+            ticker_company = df_sp.loc[df_sp['name'] == option_company,'ticker'].values[0]
+            data_price = pdr.get_data_yahoo(ticker_company, start="2011-12-31", end="2021-12-31")['Adj Close']
+            data_price = data_price.reset_index(drop = False)
+            data_price.columns = ['ds','y']
+            return data_price
+        except Exception as e:
+            st.error(f"Unable to fetch stock data for {option_company}. This may be due to network connectivity issues or Yahoo Finance API limitations.")
+            st.info("In a production environment, this would display real-time stock data from Yahoo Finance.")
+            return None
 
     return None
 
@@ -91,17 +96,23 @@ def filtering(df_sp,sector_default_val,cap_default_val,option_sector,dividend_va
 
 
 def show_stock_price(data_price):
-    fig = px.line(data_price,x="ds", y="y", title='10 years Stock Price ')
-    fig.update_xaxes(title_text='Date')
-    fig.update_yaxes(title_text='Stock price')
-    st.plotly_chart(fig)
+    if data_price is not None:
+        fig = px.line(data_price,x="ds", y="y", title='10 years Stock Price ')
+        fig.update_xaxes(title_text='Date')
+        fig.update_yaxes(title_text='Stock price')
+        st.plotly_chart(fig)
+    else:
+        st.info("Stock price chart would be displayed here when data is available.")
 
 
 def metrics(data_price):
-    stock_price_2012 = data_price['y'].values[0] #Take the first value (In most case it is 3 jan. 2012)
-    stock_price_2022 = data_price['y'].values[-1] #Take the last value (In most case, it is 31 dec. 2021)
-    performance = np.around((stock_price_2022/stock_price_2012 - 1)*100,2)
-    return stock_price_2022,performance
+    if data_price is not None:
+        stock_price_2012 = data_price['y'].values[0] #Take the first value (In most case it is 3 jan. 2012)
+        stock_price_2022 = data_price['y'].values[-1] #Take the last value (In most case, it is 31 dec. 2021)
+        performance = np.around((stock_price_2022/stock_price_2012 - 1)*100,2)
+        return stock_price_2022,performance
+    else:
+        return None, None
 
 
 ########################################### MAIN ###########################################################
@@ -170,8 +181,11 @@ if __name__ == "__main__":
 
     col_prediction_1,col_prediction_2 = st.columns([1,2])
     with col_prediction_1:
-        st.metric(label="Stock price 31 dec. 2021", value=str(np.around(stock_price_2022,2)), delta=str(performance)+ ' %')
-        st.write('*Compared to 31 dec. 2011*')
+        if stock_price_2022 is not None and performance is not None:
+            st.metric(label="Stock price 31 dec. 2021", value=str(np.around(stock_price_2022,2)), delta=str(performance)+ ' %')
+            st.write('*Compared to 31 dec. 2011*')
+        else:
+            st.info("Stock metrics would be displayed here when data is available.")
 
     with col_prediction_2:
         with st.expander("Prediction explanation",expanded=True):
@@ -179,7 +193,7 @@ if __name__ == "__main__":
                 The graph above shows the evolution of the selected stock price between 31st dec. 2011 and 31 dec. 2021.
                 The indicator on the left is the stock price value in 31st dec. 2021 for the selected company and its evolution between 31st dec. 2011 and 31st dec. 2021.
                 
-                ⚠️⚠️ Theses value are computed based on what the Yahoo Finance API returns !
+                ⚠️⚠️ These values are computed based on what the Yahoo Finance API returns !
             """)
 
 
